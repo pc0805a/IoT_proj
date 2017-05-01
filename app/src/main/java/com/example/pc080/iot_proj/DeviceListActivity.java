@@ -16,6 +16,7 @@
 
 package com.example.pc080.iot_proj;
 
+import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -50,6 +51,7 @@ import java.util.Map;
 
 
 public class DeviceListActivity extends Activity {
+    private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
     private BluetoothAdapter mBluetoothAdapter;
 
    // private BluetoothAdapter mBtAdapter;
@@ -71,6 +73,10 @@ public class DeviceListActivity extends Activity {
     	
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
+
+        //request location permission for scan result
+        requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
+
         getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.title_bar);
         setContentView(R.layout.device_list);
         android.view.WindowManager.LayoutParams layoutParams = this.getWindow().getAttributes();
