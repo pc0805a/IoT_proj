@@ -76,10 +76,6 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         int permission = ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_COARSE_LOCATION);
 
-
-
-
-
         //check Bluetooth 4.0
         mBtAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBtAdapter == null) {
@@ -95,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         btnConnectDisconnect=(Button) findViewById(R.id.btn_connect);
         btnSend=(Button) findViewById(R.id.btn_send);
         edtMessage = (EditText) findViewById(R.id.msg_input);
-        service_init();
+
 
         // Handler Disconnect & Connect button
         btnConnectDisconnect.setOnClickListener(new View.OnClickListener() {
@@ -153,6 +149,8 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
 
         // Set initial UI state
 
+
+        service_init();
 
     }
 
@@ -270,6 +268,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     private void service_init() {
         Intent bindIntent = new Intent(this, UartService.class);
         bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        Log.d(TAG, "Service initialied");
 
         LocalBroadcastManager.getInstance(this).registerReceiver(UARTStatusChangeReceiver, makeGattUpdateIntentFilter());
     }

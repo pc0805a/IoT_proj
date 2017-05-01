@@ -76,6 +76,7 @@ public class DeviceListActivity extends Activity {
 
         //request location permission for scan result
         requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
+        Log.d(TAG, "coarse location permission granted");
 
         getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.title_bar);
         setContentView(R.layout.device_list);
@@ -232,6 +233,8 @@ public class DeviceListActivity extends Activity {
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
   
             Bundle b = new Bundle();
+            Log.d(TAG, deviceList.get(position).getAddress()
+            );
             b.putString(BluetoothDevice.EXTRA_DEVICE, deviceList.get(position).getAddress());
 
             Intent result = new Intent();
