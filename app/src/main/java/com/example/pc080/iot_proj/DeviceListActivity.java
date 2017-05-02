@@ -64,7 +64,7 @@ public class DeviceListActivity extends Activity {
     Map<String, Integer> devRssiValues;
     private static final long SCAN_PERIOD = 10000; //10 seconds
     private Handler mHandler;
-    private boolean mScanning;
+    private boolean mScanning=false;
 
 
 
@@ -75,7 +75,6 @@ public class DeviceListActivity extends Activity {
         Log.d(TAG, "onCreate");
 
         //request location permission for scan result
-        requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
         Log.d(TAG, "coarse location permission granted");
 
         getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.title_bar);

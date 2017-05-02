@@ -44,13 +44,14 @@ import android.support.v4.app.ActivityCompat;
 import static android.Manifest.permission.*;
 
 import static android.provider.AlarmClock.EXTRA_MESSAGE;
+import static java.lang.Integer.*;
 
 public class MainActivity extends AppCompatActivity implements RadioGroup.OnCheckedChangeListener{
 
     private static final int REQUEST_SELECT_DEVICE = 1;
     private static final int REQUEST_ENABLE_BT = 2;
     private static final int UART_PROFILE_READY = 10;
-    public static final String TAG = "BLEUART";
+    public static final String TAG = MainActivity.class.getSimpleName();
     private static final int UART_PROFILE_CONNECTED = 20;
     private static final int UART_PROFILE_DISCONNECTED = 21;
     private static final int STATE_OFF = 10;
@@ -65,6 +66,17 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     private ArrayAdapter<String> listAdapter;
     private Button btnConnectDisconnect,btnSend;
     private EditText edtMessage;
+
+    private TextView humiTxt;
+    private TextView tempTxt;
+
+
+    private int humidity;
+    private int temperature;
+
+    private int humiThr=60;
+    private int tempThr=28;
+
 
 
 
@@ -91,6 +103,8 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         btnConnectDisconnect=(Button) findViewById(R.id.btn_connect);
         btnSend=(Button) findViewById(R.id.btn_send);
         edtMessage = (EditText) findViewById(R.id.msg_input);
+        humiTxt = (TextView) findViewById(R.id.humidity);
+        tempTxt = (TextView) findViewById(R.id.temperature);
 
 
         // Handler Disconnect & Connect button
@@ -229,7 +243,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
             }
             //*********************//
             if (action.equals(UartService.ACTION_DATA_AVAILABLE)) {
-
+                //Data received
                 final byte[] txValue = intent.getByteArrayExtra(UartService.EXTRA_DATA);
                 runOnUiThread(new Runnable() {
                     public void run() {
@@ -237,13 +251,29 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                             String text = new String(txValue, "UTF-8");
                             String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
                             listAdapter.add("["+currentDateTimeString+"] RX: "+text);
+                            Log.d(TAG, "TextIn = " + text);
+
+                            String[] txtSplit = text.split(" ");
+                            humidity = parseInt(txtSplit[0]);
+                            temperature = parseInt(txtSplit[1]);
+
+                            Log.d(TAG, "Humidity = " + humidity);
+                            Log.d(TAG, "Temperature = " + temperature);
+
+
                             messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
 
                         } catch (Exception e) {
+                            messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
                             Log.e(TAG, e.toString());
                         }
                     }
                 });
+
+                humiTxt.setText(humidity + "%");
+                tempTxt.setText(temperature + "℃");
+
+
             }
             //*********************//
             if (action.equals(UartService.DEVICE_DOES_NOT_SUPPORT_UART)){
@@ -296,7 +326,8 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         Intent intent = new Intent(this, SettingsActivity.class);
         //EditText editText = (EditText) findViewById(R.id.editText);
         //String message = editText.getText().toString();
-        //intent.putExtra(EXTRA_MESSAGE, message);
+        intent.putExtra("humiThr", humiThr);
+        intent.putExtra("tempThr", tempThr);
         startActivity(intent);
     }
 

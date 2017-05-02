@@ -1,11 +1,15 @@
 package com.example.pc080.iot_proj;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 public class SettingsActivity extends AppCompatActivity {
+
+    public static final String TAG = SettingsActivity.class.getSimpleName();
 
     private SeekBar humiSeekbar;
     private SeekBar tempSeekbar;
@@ -23,6 +27,14 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
+        Intent intent = this.getIntent();
+        humiThr = intent.getIntExtra("humiThr", 0);
+        tempThr = intent.getIntExtra("tempThr", 0);
+
+        Log.d(TAG,"humiThr = " + humiThr);
+        Log.d(TAG,"tempThr = " + tempThr);
+
+
 
         humiSeekbar = (SeekBar) findViewById(R.id.humi_seekbar);
         tempSeekbar = (SeekBar) findViewById(R.id.temp_seekbar);
@@ -31,8 +43,12 @@ public class SettingsActivity extends AppCompatActivity {
 
         humiSeekbar.setMax(60);//20+60 = 80, so 80 is max humidity
         humiSeekbar.setOnSeekBarChangeListener(new humiSeekBarListener());
+        humiSeekbar.setProgress(humiThr-20);//change actual value to seekBar progress
+        humiThrText.setText((humiThr) + "%");
         tempSeekbar.setMax(50);
+        tempSeekbar.setProgress(tempThr);
         tempSeekbar.setOnSeekBarChangeListener(new tempSeekBarListener());
+        tempThrText.setText(tempThr + "℃");
 
     }
 
@@ -42,8 +58,9 @@ public class SettingsActivity extends AppCompatActivity {
             if(fromUser)
             {
 
-                    humiSeekProgress = progress;
-                humiThrText.setText(""+ (humiSeekProgress+20) + "%");
+                    humiSeekProgress = progress;    //0-60
+                    humiThr = humiSeekProgress + 20;//20-80(actual range)
+                humiThrText.setText(humiThr + "%");
             }
         }
 
@@ -54,7 +71,8 @@ public class SettingsActivity extends AppCompatActivity {
 
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
-            humiThrText.setText(""+ (humiSeekProgress+20 + "%"));
+            humiThr = humiSeekProgress + 20;//20-80(actual range)
+            humiThrText.setText(humiThr + "%");
         }
     }
 
@@ -64,7 +82,8 @@ public class SettingsActivity extends AppCompatActivity {
             if(fromUser)
             {
                 tempSeekProgress = progress;
-                tempThrText.setText(""+ tempSeekProgress + " Celsius");
+                tempThr = tempSeekProgress;
+                tempThrText.setText(tempThr + "℃");
             }
         }
 
@@ -75,7 +94,8 @@ public class SettingsActivity extends AppCompatActivity {
 
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
-            tempThrText.setText(""+ tempSeekProgress + " Celsius");
+            tempThr = tempSeekProgress;
+            tempThrText.setText(tempThr + "℃");
         }
     }
 
