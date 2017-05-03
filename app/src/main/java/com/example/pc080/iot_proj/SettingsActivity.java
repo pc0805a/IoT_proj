@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -14,11 +16,17 @@ public class SettingsActivity extends AppCompatActivity {
     private SeekBar humiSeekbar;
     private SeekBar tempSeekbar;
 
+    private Button btnConfirm;
+    private Button btnCancel;
+
     private TextView humiThrText;
     private TextView tempThrText;
 
+    private int def_humiThr=0;
+    private int def_tempThr=0;
     private int humiThr=0;
     private int tempThr=0;
+    private String deviceAddress;
     private int humiSeekProgress;
     private int tempSeekProgress;
 
@@ -28,11 +36,15 @@ public class SettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_settings);
 
         Intent intent = this.getIntent();
+        def_humiThr = intent.getIntExtra("humiThr", 0);//default
+        def_tempThr = intent.getIntExtra("tempThr", 0);//default
         humiThr = intent.getIntExtra("humiThr", 0);
         tempThr = intent.getIntExtra("tempThr", 0);
+        deviceAddress = intent.getStringExtra("deviceAddress");
 
-        Log.d(TAG,"humiThr = " + humiThr);
-        Log.d(TAG,"tempThr = " + tempThr);
+        Log.d(TAG,"humiThr = " + def_humiThr);
+        Log.d(TAG,"tempThr = " + def_tempThr);
+        Log.d(TAG,"deviceAddress = " + deviceAddress);
 
 
 
@@ -40,6 +52,34 @@ public class SettingsActivity extends AppCompatActivity {
         tempSeekbar = (SeekBar) findViewById(R.id.temp_seekbar);
         humiThrText = (TextView) findViewById(R.id.humi_thr);
         tempThrText = (TextView) findViewById(R.id.temp_thr);
+
+        btnConfirm = (Button) findViewById(R.id.btn_confirm);
+        btnCancel = (Button) findViewById(R.id.btn_cancel);
+
+        btnConfirm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Intent intent = new Intent();
+                intent.putExtra("humiThr", humiThr);
+                intent.putExtra("tempThr", tempThr);
+                intent.putExtra("deviceAddress", deviceAddress);
+                setResult(RESULT_OK,intent);
+                finish();
+            }
+        });
+
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.putExtra("humiThr", def_humiThr);
+                intent.putExtra("tempThr", def_tempThr);
+                intent.putExtra("deviceAddress", deviceAddress);
+                setResult(RESULT_OK,intent);
+                finish();
+            }
+        });
 
         humiSeekbar.setMax(60);//20+60 = 80, so 80 is max humidity
         humiSeekbar.setOnSeekBarChangeListener(new humiSeekBarListener());
@@ -99,7 +139,27 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        Log.d(TAG, "Test1");
+        finish();
+    }
 
+    @Override
+    protected void onPause() {
+        Log.d(TAG, "onPause()");
+        super.onPause();
+    }
 
+    @Override
+    protected void onStop() {
+        Log.d(TAG, "onStop()");
+        super.onStop();
+    }
 
+    @Override
+    protected void onDestroy() {
+        Log.d(TAG, "onDestroy()");
+        super.onDestroy();
+    }
 }

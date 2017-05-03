@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
 
     private static final int REQUEST_SELECT_DEVICE = 1;
     private static final int REQUEST_ENABLE_BT = 2;
+    private static final int RECONNECT_BLE = 3;
     private static final int UART_PROFILE_READY = 10;
     public static final String TAG = MainActivity.class.getSimpleName();
     private static final int UART_PROFILE_CONNECTED = 20;
@@ -76,6 +77,8 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
 
     private int humiThr=60;
     private int tempThr=28;
+
+    private String deviceAddress;
 
 
 
@@ -230,6 +233,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                         listAdapter.add("["+currentDateTimeString+"] Disconnected to: "+ mDevice.getName());
                         mState = UART_PROFILE_DISCONNECTED;
                         mService.close();
+                        deviceAddress = null;
                         //setUiState();
 
                     }
@@ -260,6 +264,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                             Log.d(TAG, "Humidity = " + humidity);
                             Log.d(TAG, "Temperature = " + temperature);
 
+                            alarmToast(); //show alarm when value is over threshold
 
                             messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
 
@@ -281,8 +286,10 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                 mService.disconnect();
             }
 
+            messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
 
         }
+
     };
 
     private static IntentFilter makeGattUpdateIntentFilter() {
@@ -328,7 +335,9 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         //String message = editText.getText().toString();
         intent.putExtra("humiThr", humiThr);
         intent.putExtra("tempThr", tempThr);
-        startActivity(intent);
+        intent.putExtra("deviceAddress", deviceAddress);
+        startActivityForResult(intent, RECONNECT_BLE);
+        //startActivity(intent);
     }
 
     private void showMessage(String msg) {
@@ -399,7 +408,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
             case REQUEST_SELECT_DEVICE:
                 //When the DeviceListActivity return, with the selected device address
                 if (resultCode == Activity.RESULT_OK && data != null) {
-                    String deviceAddress = data.getStringExtra(BluetoothDevice.EXTRA_DEVICE);
+                    deviceAddress = data.getStringExtra(BluetoothDevice.EXTRA_DEVICE);
                     mDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(deviceAddress);
 
                     Log.d(TAG, "... onActivityResultdevice.address==" + mDevice + "mserviceValue" + mService);
@@ -421,6 +430,34 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                     finish();
                 }
                 break;
+            case RECONNECT_BLE:
+                //When the SettingsActivity return, with the original device address
+
+                humiThr = data.getIntExtra("humiThr", 0);
+                tempThr = data.getIntExtra("tempThr", 0);
+                if (resultCode == Activity.RESULT_OK && data != null && deviceAddress!=null) {
+
+                    String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                    listAdapter.add("["+currentDateTimeString+"] RX: "+"Reconnecting to BLE device...");
+
+                    deviceAddress = data.getStringExtra("deviceAddress");
+
+
+                    Log.d(TAG, "humiThr = " + humiThr);
+                    Log.d(TAG, "tempThr = " + tempThr);
+                    Log.d(TAG, "deviceAddress = " +  deviceAddress);
+
+                    mDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(deviceAddress);
+
+                    Log.d(TAG, "... onActivityResultdevice.address==" + mDevice + "mserviceValue" + mService);
+                    ((TextView) findViewById(R.id.deviceName)).setText(mDevice.getName()+ " - connecting");
+                    mService.connect(deviceAddress);
+
+                    //listAdapter.add("["+currentDateTimeString+"] Connected to: "+ mDevice.getName());
+                    messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+
+                }
+                break;
             default:
                 Log.e(TAG, "wrong request code");
                 break;
@@ -439,7 +476,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
             startMain.addCategory(Intent.CATEGORY_HOME);
             startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(startMain);
-            showMessage("REYAX BLE UART still in background.\n             Disconnect to exit");
+            showMessage("BLE UART still in background.\n             Disconnect to exit");
         }
         else {
             new AlertDialog.Builder(this)
@@ -457,5 +494,35 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                     .show();
         }
     }
+
+    private void alarmToast()
+    {
+        if(humidity>=humiThr)
+        {
+            //Toast.makeText(this, "Humidity is over " + humiThr + "%", Toast.LENGTH_SHORT).show();
+            showSingleToast(this, "Humidity is over " + humiThr + "%", 3000);
+            String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+            listAdapter.add("["+currentDateTimeString+"] RX: " + "Humidity >=" + humiThr + "%");
+        }
+
+        if(temperature>=tempThr) {
+            //Toast.makeText(this, "Temperature is over " + tempThr + "℃", Toast.LENGTH_SHORT).show();
+            showSingleToast(this, "Temperature is over " + tempThr + "℃", 3000);
+            String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+            listAdapter.add("[" + currentDateTimeString + "] RX: " + "Temperature >=" + tempThr + "℃");
+        }
+
+        messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+    }
+
+
+    private Toast mToast;
+
+    public void showSingleToast(Context context, String text, int duration) {
+        if (mToast != null) mToast.cancel();
+        mToast = Toast.makeText(context, text, duration);
+        mToast.show();
+    }
+
 
 }
