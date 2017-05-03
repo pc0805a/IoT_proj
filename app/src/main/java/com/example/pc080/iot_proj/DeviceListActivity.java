@@ -64,7 +64,7 @@ public class DeviceListActivity extends Activity {
     Map<String, Integer> devRssiValues;
     private static final long SCAN_PERIOD = 10000; //10 seconds
     private Handler mHandler;
-    private boolean mScanning=false;
+    private boolean mScanning = false;
 
 
 
@@ -75,6 +75,7 @@ public class DeviceListActivity extends Activity {
         Log.d(TAG, "onCreate");
 
         //request location permission for scan result
+        requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
         Log.d(TAG, "coarse location permission granted");
 
         getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.title_bar);
@@ -104,15 +105,19 @@ public class DeviceListActivity extends Activity {
         }
         populateList();
         mEmptyList = (TextView) findViewById(R.id.empty);
+
         Button cancelButton = (Button) findViewById(R.id.btn_cancel);
         cancelButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-            	
-            	if (mScanning==false) scanLeDevice(true); 
+
+            	if (mScanning==false) scanLeDevice(true);
             	else finish();
             }
         });
+
+
+
 
     }
 
@@ -127,7 +132,7 @@ public class DeviceListActivity extends Activity {
         newDevicesListView.setAdapter(deviceAdapter);
         newDevicesListView.setOnItemClickListener(mDeviceClickListener);
 
-           scanLeDevice(true);
+        scanLeDevice(true);
 
     }
     
@@ -140,7 +145,7 @@ public class DeviceListActivity extends Activity {
                 public void run() {
 					mScanning = false;
                     mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                        
+
                     cancelButton.setText(R.string.scan);
 
                 }
@@ -151,7 +156,7 @@ public class DeviceListActivity extends Activity {
             cancelButton.setText(R.string.cancel);
         } else {
             mScanning = false;
-            mBluetoothAdapter.stopLeScan(mLeScanCallback);
+            //mBluetoothAdapter.stopLeScan(mLeScanCallback);
             cancelButton.setText(R.string.scan);
         }
 
