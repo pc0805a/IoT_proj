@@ -141,7 +141,11 @@ public class SettingsActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        Log.d(TAG, "Test1");
+        Intent intent = new Intent();
+        intent.putExtra("humiThr", def_humiThr);
+        intent.putExtra("tempThr", def_tempThr);
+        intent.putExtra("deviceAddress", deviceAddress);
+        setResult(RESULT_OK,intent);
         finish();
     }
 
