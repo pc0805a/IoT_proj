@@ -7,18 +7,18 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.os.Build;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -41,10 +41,11 @@ import java.util.Date;
 
 
 import android.support.v4.app.ActivityCompat;
-import static android.Manifest.permission.*;
 
-import static android.provider.AlarmClock.EXTRA_MESSAGE;
 import static java.lang.Integer.*;
+
+import com.example.pc080.iot_proj.FeedReaderContract.*;
+
 
 public class MainActivity extends AppCompatActivity implements RadioGroup.OnCheckedChangeListener{
 
@@ -165,9 +166,12 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         });
 
         // Set initial UI state
-
-
         service_init();
+        if(checkRowCountOfDB()==0)//if DB has no threshold data
+        {
+            insertThrToDB();
+        }
+
 
     }
 
@@ -274,6 +278,8 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                         }
                     }
                 });
+
+
 
                 humiTxt.setText(humidity + "%");
                 tempTxt.setText(temperature + "℃");
@@ -522,6 +528,39 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         if (mToast != null) mToast.cancel();
         mToast = Toast.makeText(context, text, duration);
         mToast.show();
+    }
+
+    public void insertThrToDB(){
+        FeedReaderDbHelper mDbHelper = new FeedReaderDbHelper(getApplicationContext());
+        // Gets the data repository in write mode
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+        // Create a new map of values, where column names are the keys
+        ContentValues values = new ContentValues();
+        values.put(FeedEntry.COLUMN_HUMI_THR, humidity);
+        values.put(FeedEntry.COLUMN_TEMP_THR, temperature);
+
+        //delete old one
+        db.execSQL("delete from "+ FeedEntry.TABLE_NAME);
+
+        // Insert the new row, returning the primary key value of the new row
+        long newRowId = db.insert(FeedEntry.TABLE_NAME, null, values);
+        Log.d(TAG, "newRowId = " + newRowId);
+    }
+
+    public int checkRowCountOfDB() {
+        FeedReaderDbHelper mDbHelper = new FeedReaderDbHelper(getApplicationContext());
+        // Gets the data repository in write mode
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+        Cursor mCount= db.rawQuery("select count(*) from entry", null);
+        mCount.moveToFirst();
+        int count= mCount.getInt(0);
+        mCount.close();
+
+        Log.d(TAG, "DB row count = " + count);
+
+        return count;
     }
 
 
