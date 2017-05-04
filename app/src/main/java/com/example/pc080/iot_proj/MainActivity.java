@@ -73,8 +73,8 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
     private TextView tempTxt;
 
 
-    private int humidity;
-    private int temperature;
+    private int humidity = -1;
+    private int temperature = -1;
 
     private int humiThr=60;
     private int tempThr=28;
@@ -171,6 +171,10 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         {
             insertThrToDB();
         }
+        else
+        {
+            loadThrFromDB();
+        }
 
 
     }
@@ -239,9 +243,16 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
                         mService.close();
                         deviceAddress = null;
                         //setUiState();
+                        humiTxt.setText(R.string.not_available);
+                        tempTxt.setText(R.string.not_available);
+                        humidity = -1;
+                        temperature = -1;
 
                     }
                 });
+
+                humiTxt.setText(R.string.not_available);
+                tempTxt.setText(R.string.not_available);
             }
 
 
@@ -441,6 +452,7 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
 
                 humiThr = data.getIntExtra("humiThr", 0);
                 tempThr = data.getIntExtra("tempThr", 0);
+                insertThrToDB();
                 if (resultCode == Activity.RESULT_OK && data != null && deviceAddress!=null) {
 
                     String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
@@ -561,6 +573,22 @@ public class MainActivity extends AppCompatActivity implements RadioGroup.OnChec
         Log.d(TAG, "DB row count = " + count);
 
         return count;
+    }
+
+    public void loadThrFromDB(){
+        FeedReaderDbHelper mDbHelper = new FeedReaderDbHelper(getApplicationContext());
+        // Gets the data repository in write mode
+        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+        Cursor mCursor = db.rawQuery("select * from entry", null);
+        mCursor.moveToFirst();
+        //int index = mCursor.getColumnIndex(FeedEntry.COLUMN_HUMI_THR);
+        Log.d(TAG, "COLUMN_HUMI_THR = " + mCursor.getInt(1));
+        Log.d(TAG, "COLUMN_TEMP_THR = " + mCursor.getInt(2));
+
+        humiThr = mCursor.getInt(1);
+        tempThr = mCursor.getInt(2);
+
     }
 
 
